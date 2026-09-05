@@ -1,3 +1,4 @@
+from agent_task_runner.planner.plan import PlanStep
 from agent_task_runner.registry.tool_registry import ToolRegistry
 
 
@@ -6,17 +7,17 @@ class Executor:
     def __init__(self, registry: ToolRegistry):
         self.registry = registry
 
-    def execute(self, step: str) -> str:
-        print(f"Executing: {step}")
+    def execute(self, step: PlanStep) -> str:
+        print(
+            f"Executing: {step.tool}.{step.action}"
+        )
 
-        if step.startswith("create_file:"):
-            path = step.split(":", 1)[1].strip()
+        tool = self.registry.get(step.tool)
 
-            tool = self.registry.get("file")
+        if tool is None:
+            return f"Error: tool '{step.tool}' not found"
 
-            if tool is None:
-                return "Error: file tool not found"
-
-            return tool.create_file(path)
-
-        return f"Completed: {step}"
+        return tool.execute(
+            step.action,
+            step.arguments,
+        )

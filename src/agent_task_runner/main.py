@@ -15,7 +15,7 @@ def run_task(description: str):
     planner = Planner()
 
     registry = ToolRegistry()
-    registry.register("file", FileTool())
+    registry.register(FileTool())
 
     executor = Executor(registry)
 
@@ -23,15 +23,18 @@ def run_task(description: str):
 
     print("\nPlan:")
 
-    for index, step in enumerate(plan, start=1):
-        print(f"{index}. {step}")
+    for index, step in enumerate(plan.steps, start=1):
+        print(
+            f"{index}. "
+            f"{step.tool}.{step.action}"
+        )
 
     task.start()
 
     print(f"\nStatus: {task.status}")
     print("\nExecution:")
 
-    for step in plan:
+    for step in plan.steps:
         result = executor.execute(step)
         print(result)
 
