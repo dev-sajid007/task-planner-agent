@@ -1,13 +1,10 @@
 from agent_task_runner.registry.tool_registry import ToolRegistry
-from agent_task_runner.tools.file_tool import FileTool
 
 
 class Executor:
 
-    def __init__(self):
-        self.registry = ToolRegistry()
-
-        self.registry.register("file", FileTool())
+    def __init__(self, registry: ToolRegistry):
+        self.registry = registry
 
     def execute(self, step: str) -> str:
         print(f"Executing: {step}")

@@ -1,6 +1,8 @@
 from agent_task_runner.task import Task
 from agent_task_runner.planner.planner import Planner
 from agent_task_runner.executor.executor import Executor
+from agent_task_runner.registry.tool_registry import ToolRegistry
+from agent_task_runner.tools.file_tool import FileTool
 
 
 def run_task(description: str):
@@ -11,7 +13,11 @@ def run_task(description: str):
     print(f"Status: {task.status}")
 
     planner = Planner()
-    executor = Executor()
+
+    registry = ToolRegistry()
+    registry.register("file", FileTool())
+
+    executor = Executor(registry)
 
     plan = planner.create_plan(task.description)
 
@@ -26,7 +32,8 @@ def run_task(description: str):
     print("\nExecution:")
 
     for step in plan:
-        executor.execute(step)
+        result = executor.execute(step)
+        print(result)
 
     task.complete("Task executed successfully.")
 
