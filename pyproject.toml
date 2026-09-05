@@ -1,0 +1,19 @@
+[project]
+name = "agent-task-runner"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "dev-sajid007", email = "dev.sajid007@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "typer>=0.27.2",
+]
+
+[project.scripts]
+task-runner = "agent_task_runner.cli:app"
+
+[build-system]
+requires = ["uv_build>=0.12.8,<0.13.0"]
+build-backend = "uv_build"
