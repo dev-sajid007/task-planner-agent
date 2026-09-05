@@ -7,6 +7,4 @@ app = typer.Typer()
 
 @app.command()
 def run_agent_task(task: str):
-    result = run_task(task)
-    
-    print(f"Status: {result.status}")
+    run_task(task)
