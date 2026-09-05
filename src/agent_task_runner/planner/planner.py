@@ -7,11 +7,10 @@ class Planner:
         return Plan(
             steps=[
                 PlanStep(
-                    tool="file",
-                    action="write",
+                    tool="shell",
+                    action="run",
                     arguments={
-                        "path": "output/main.py",
-                        "content": "print('Hello World')",
+                        "command": "python --version"
                     },
                 )
             ]
