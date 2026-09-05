@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Agent Task Runner — Planner / Executor Architecture",
+    "quality_profile": "showcase",
+    "viewBox": [1280, 680],
+    "repository": {
+      "url": "https://github.com/dev-sajid007/task-planner-agent.git",
+      "revision": "c93b4be1e97585567396726e7ba491b5a9cd90e0"
+    },
+    "views": [
+      {
+        "id": "happy-path",
+        "label": "Happy path: CLI to file",
+        "focus": ["cli", "orchestrator", "planner", "executor", "filetool", "filesystem"],
+        "note": "Primary flow from CLI invocation through planning and execution to file creation."
+      },
+      {
+        "id": "task-lifecycle",
+        "label": "Task lifecycle",
+        "focus": ["orchestrator", "task", "planner", "executor"],
+        "note": "Task dataclass transitions pending → running → completed via orchestrator."
+      },
+      {
+        "id": "tool-resolution",
+        "label": "Tool resolution",
+        "focus": ["executor", "registry", "filetool", "filesystem"],
+        "note": "Executor resolves FileTool through the registry before writing."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "cli",
+      "type": "frontend",
+      "label": "CLI",
+      "sublabel": "Typer • cli.py",
+      "tag": "run-agent-task",
+      "pos": [40, 320],
+      "size": [142, 66],
+      "sources": [{ "path": "src/agent_task_runner/cli.py", "line": 8 }]
+    },
+    {
+      "id": "orchestrator",
+      "type": "backend",
+      "label": "Orchestrator",
+      "sublabel": "main.py • run_task()",
+      "pos": [240, 320],
+      "size": [162, 66],
+      "sources": [{ "path": "src/agent_task_runner/main.py", "line": 6 }]
+    },
+    {
+      "id": "task",
+      "type": "backend",
+      "label": "Task Model",
+      "sublabel": "dataclass • pending/running",
+      "pos": [240, 140],
+      "size": [162, 66],
+      "sources": [{ "path": "src/agent_task_runner/task.py", "line": 6 }]
+    },
+    {
+      "id": "planner",
+      "type": "backend",
+      "label": "Planner",
+      "sublabel": "create_plan()",
+      "pos": [470, 320],
+      "size": [148, 66],
+      "sources": [{ "path": "src/agent_task_runner/planner/planner.py", "line": 1 }]
+    },
+    {
+      "id": "executor",
+      "type": "backend",
+      "label": "Executor",
+      "sublabel": "execute(step)",
+      "pos": [680, 320],
+      "size": [148, 66],
+      "sources": [{ "path": "src/agent_task_runner/executor/executor.py", "line": 5 }]
+    },
+    {
+      "id": "registry",
+      "type": "backend",
+      "label": "ToolRegistry",
+      "sublabel": "registry • dict",
+      "pos": [680, 470],
+      "size": [148, 66],
+      "sources": [{ "path": "src/agent_task_runner/registry/tool_registry.py", "line": 1 }]
+    },
+    {
+      "id": "filetool",
+      "type": "backend",
+      "label": "FileTool",
+      "sublabel": "create_file(path)",
+      "pos": [920, 320],
+      "size": [148, 66],
+      "sources": [{ "path": "src/agent_task_runner/tools/file_tool.py", "line": 4 }]
+    },
+    {
+      "id": "filesystem",
+      "type": "external",
+      "label": "Local Filesystem",
+      "sublabel": "output/main.py",
+      "pos": [920, 470],
+      "size": [148, 66]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Python Process: agent_task_runner",
+      "wraps": ["cli", "orchestrator", "task", "planner", "executor", "registry", "filetool"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Execution Boundary",
+      "wraps": ["executor", "registry", "filetool"]
+    }
+  ],
+  "connections": [
+    { "id": "cli-to-orch", "from": "cli", "to": "orchestrator", "label": "run_task(desc)", "variant": "emphasis", "labelDy": 52 },
+    { "id": "orch-to-task", "from": "orchestrator", "to": "task", "label": "manage lifecycle", "fromSide": "top", "toSide": "bottom", "labelDx": 34 },
+    { "id": "orch-to-planner", "from": "orchestrator", "to": "planner", "label": "create_plan()", "labelDy": -42 },
+    { "id": "orch-to-exec", "from": "orchestrator", "to": "executor", "label": "execute(plan)", "fromSide": "bottom", "toSide": "bottom", "via": [[321, 410], [754, 410]], "labelDy": 14 },
+    { "id": "exec-to-registry", "from": "executor", "to": "registry", "label": "get(\"file\")", "fromSide": "bottom", "toSide": "top", "labelAt": [782, 428] },
+    { "id": "registry-to-filetool", "from": "registry", "to": "filetool", "label": "resolve", "fromSide": "right", "toSide": "right", "via": [[860, 503], [860, 574], [1100, 574], [1100, 353]], "labelAt": [980, 590] },
+    { "id": "filetool-to-fs", "from": "filetool", "to": "filesystem", "label": "write file", "fromSide": "bottom", "toSide": "top", "labelAt": [1022, 424] },
+    { "id": "planner-reads-task", "from": "planner", "to": "task", "label": "read description", "variant": "dashed", "fromSide": "top", "toSide": "right", "via": [[544, 250], [440, 250], [440, 173]], "labelDy": -10 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Entry", "items": ["Typer CLI invokes run_task(description) in main.py", "Task dataclass holds id, status, result with UUID prefix"] },
+    { "dot": "emerald", "title": "Orchestration", "items": ["Orchestrator creates plan via Planner.create_plan()", "Then iterates plan steps via Executor.execute()", "Task transitions pending → running → completed"] },
+    { "dot": "amber", "title": "Execution", "items": ["Executor resolves FileTool through ToolRegistry", "FileTool writes output/main.py to local filesystem", "Minimal, extensible registry for future tools"] }
+  ]
+}
